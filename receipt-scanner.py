@@ -1,11 +1,11 @@
 # import the necessary packages
 from pyimagesearch import four_point_transform #coding: utf-8
 from skimage.filters import threshold_local
+from skimage import exposure
 import numpy as np
 import argparse
 import cv2
 import imutils
-
 
 # construct the argument parser and parse the arguments
 ap = argparse.ArgumentParser()
@@ -61,12 +61,22 @@ warped = four_point_transform(orig, screenCnt.reshape(4, 2) * ratio)
 # convert the warped image to grayscale, then threshold it
 # to give it that 'black and white' paper effect
 warped = cv2.cvtColor(warped, cv2.COLOR_BGR2GRAY)
-T = threshold_local(warped, 11, offset = 10, method = "gaussian")
+
+warped = cv2.GaussianBlur(warped, (5, 5), 0)
+
+T = threshold_local(warped, 41, offset = 8, method = "gaussian")
 warped = (warped > T).astype("uint8") * 255
+
+# Perform morphological operations (dilation and erosion) to remove noise and improve text connectivity
+kernel = np.ones((3, 3), np.uint8)
+dilated_image = cv2.dilate(warped, kernel, iterations=1)
+final_image = cv2.erode(dilated_image, kernel, iterations=1)
+
+enhanced_image = exposure.rescale_intensity(final_image, in_range=(0, 255), out_range=(0, 255)).astype(np.uint8)
 # show the original and scanned images
 print("STEP 3: Apply perspective transform")
 cv2.imshow("Original", imutils.resize(orig, height = 650))
-savedWarp = imutils.resize(warped, height = 650)
+savedWarp = imutils.resize(enhanced_image, height = 650)
 cv2.imshow("Scanned", savedWarp)
 cv2.waitKey(0)
 

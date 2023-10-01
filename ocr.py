@@ -5,6 +5,8 @@ import pytesseract
 import argparse
 import cv2
 
+pytesseract.pytesseract.tesseract_cmd = r'C:/Users/cabre/Downloads/tesseract-main/tesseract-main'
+
 def decode_predictions(scores, geometry):
 	# grab the number of rows and columns from the scores volume, then
 	# initialize our set of bounding box rectangles and corresponding
